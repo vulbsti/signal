@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-signal-bg: #0a0e1a;
+  --color-signal-surface: #111827;
+  --color-signal-card: rgba(17, 24, 39, 0.7);
+  --color-signal-border: rgba(59, 130, 246, 0.15);
+  --color-signal-accent: #06b6d4;
+  --color-signal-accent-blue: #3b82f6;
+  --color-signal-score-green: #22c55e;
+  --color-signal-score-yellow: #eab308;
+  --color-signal-score-blue: #3b82f6;
+  --color-signal-muted: #6b7280;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+}
+
+body {
+  background: var(--bg);
+  color: #e5e7eb;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Glassmorphism card utility */
+.glass-card {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 12px;
+}
+
+/* Score badge colors */
+.score-top { color: #22c55e; }
+.score-strong { color: #eab308; }
+.score-peripheral { color: #3b82f6; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(107, 114, 128, 0.3); border-radius: 3px; }
