@@ -6,7 +6,14 @@ from google import genai
 
 from signal_agent.config import FLASH_MODEL, SCORE_THRESHOLD, BATCH_SIZE
 
-_client = genai.Client()
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client()
+    return _client
 
 SCORING_PROMPT = """\
 You are a content relevance scorer. Given a user's preferences and a batch of content items,
@@ -71,7 +78,7 @@ async def score_items(items: list[dict], preferences: str) -> list[dict]:
             preferences=preferences, items_json=items_summary
         )
 
-        response = await _client.aio.models.generate_content(
+        response = await _get_client().aio.models.generate_content(
             model=FLASH_MODEL,
             contents=prompt,
         )

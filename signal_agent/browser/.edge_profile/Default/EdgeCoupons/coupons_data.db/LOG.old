@@ -1,0 +1,9 @@
+2026/02/14-15:54:14.910 1964d4 Reusing MANIFEST /home/vulbsti/proj/noise_reduction/noise_v1/signal_agent/browser/.edge_profile/Default/EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/02/14-15:54:14.910 1964d4 Recovering log #45
+2026/02/14-15:54:14.911 1964d4 Level-0 table #48: started
+2026/02/14-15:54:14.913 1964d4 Level-0 table #48: 681596 bytes OK
+2026/02/14-15:54:14.913 1964d4 Recovering log #48
+2026/02/14-15:54:14.913 1964d4 Reusing old log /home/vulbsti/proj/noise_reduction/noise_v1/signal_agent/browser/.edge_profile/Default/EdgeCoupons/coupons_data.db/000048.log 
+2026/02/14-15:54:14.914 1964d4 Delete type=0 #45
+2026/02/14-15:54:14.914 1964d6 Compacting 5@0 + 1@1 files
+2026/02/14-15:54:14.916 1964d6 compacted to: files[ 5 1 1 0 0 0 0 ]

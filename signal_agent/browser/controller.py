@@ -1,34 +1,45 @@
-"""Playwright browser lifecycle management."""
+"""Playwright browser lifecycle management using Microsoft Edge."""
 
 import os
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page
+from playwright.async_api import async_playwright, BrowserContext, Page
 
 VIEWPORT_WIDTH = 1440
 VIEWPORT_HEIGHT = 900
-COOKIES_PATH = os.path.join(os.path.dirname(__file__), ".browser_state")
+
+# Edge user data directory — uses the real Edge profile with existing logins
+_EDGE_USER_DATA = os.path.expanduser("~/.config/microsoft-edge")
+# Separate persistent dir for Playwright to avoid locking Edge's profile
+_PERSISTENT_DIR = os.path.join(os.path.dirname(__file__), ".edge_profile")
 
 
 class BrowserController:
-    """Manages a Chromium browser instance with persistent cookies."""
+    """Manages a Microsoft Edge browser instance with the user's real profile."""
 
     def __init__(self):
         self._playwright = None
-        self._browser: Browser | None = None
         self._context: BrowserContext | None = None
         self.page: Page | None = None
 
     async def start(self) -> Page:
-        """Launch browser and return the active page."""
+        """Launch Edge and return the active page."""
         self._playwright = await async_playwright().start()
-        self._browser = await self._playwright.chromium.launch(headless=False)
 
-        # Use persistent storage dir for cookies/sessions if it exists
-        storage_state = COOKIES_PATH if os.path.exists(COOKIES_PATH) else None
-        self._context = await self._browser.new_context(
+        os.makedirs(_PERSISTENT_DIR, exist_ok=True)
+
+        self._context = await self._playwright.chromium.launch_persistent_context(
+            user_data_dir=_PERSISTENT_DIR,
+            channel="msedge",
+            headless=False,
             viewport={"width": VIEWPORT_WIDTH, "height": VIEWPORT_HEIGHT},
-            storage_state=storage_state,
+            args=["--disable-blink-features=AutomationControlled"],
         )
-        self.page = await self._context.new_page()
+
+        # Use existing page or open a new one
+        if self._context.pages:
+            self.page = self._context.pages[0]
+        else:
+            self.page = await self._context.new_page()
+
         return self.page
 
     async def screenshot(self) -> bytes:
@@ -37,23 +48,12 @@ class BrowserController:
             raise RuntimeError("Browser not started")
         return await self.page.screenshot(type="png", full_page=False)
 
-    async def save_cookies(self):
-        """Persist browser state (cookies, localStorage) to disk."""
-        if self._context:
-            state = await self._context.storage_state()
-            import json
-            os.makedirs(os.path.dirname(COOKIES_PATH), exist_ok=True)
-            with open(COOKIES_PATH, "w") as f:
-                json.dump(state, f)
-
     async def stop(self):
-        """Save cookies and close browser."""
-        await self.save_cookies()
-        if self._browser:
-            await self._browser.close()
+        """Close browser context."""
+        if self._context:
+            await self._context.close()
         if self._playwright:
             await self._playwright.stop()
-        self._browser = None
         self._context = None
         self.page = None
 

@@ -2,7 +2,7 @@
 
 from google.adk.agents import Agent
 
-from signal_agent.tools.browser_tools import curate_feed
+from signal_agent.tools.browser_tools import curate_feed, login_to_platform
 from signal_agent.tools.memory_tools import (
     read_memory_file,
     write_memory_file,
@@ -33,6 +33,11 @@ by physically operating a browser via Computer Use.
 - Instagram: curate_feed(platform="instagram")
 - X/Twitter: curate_feed(platform="x")
 
+## Login Flow
+- Before curating, if the result says "not_logged_in", tell the user to run /login [platform]
+- login_to_platform(platform) opens a browser for the user to log in manually
+- After login succeeds, the user can run /curate again
+
 ## Important Notes
 - The browser will open visibly — the user can watch the curation happen
 - Each session processes ~10 posts by default
@@ -41,7 +46,6 @@ by physically operating a browser via Computer Use.
   - Promotes content diversity
   - Mutes rage bait accounts
 - Always summarize what was done after a curation session
-- If the user isn't logged into a platform, tell them to log in manually first
 """,
-    tools=[curate_feed, read_memory_file, write_memory_file, append_history_entry],
+    tools=[curate_feed, login_to_platform, read_memory_file, write_memory_file, append_history_entry],
 )

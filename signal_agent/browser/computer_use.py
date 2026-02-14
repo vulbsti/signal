@@ -1,11 +1,15 @@
 """Gemini Computer Use agent loop — screenshot → model → actions → repeat."""
 
+import logging
+
 from google import genai
 from google.genai import types
 
 from signal_agent.browser.controller import BrowserController
 from signal_agent.browser.actions import execute_action
 from signal_agent.config import PRO_MODEL
+
+logger = logging.getLogger(__name__)
 
 MAX_TURNS = 25
 MAX_RECENT_SCREENSHOTS = 3
@@ -67,15 +71,19 @@ async def run_computer_use(
     config = _build_config(system_prompt)
     controller = BrowserController()
     actions_log = []
+    final_text = ""
 
     try:
         page = await controller.start()
+        logger.info("Browser started")
 
         if start_url:
             await page.goto(start_url, wait_until="domcontentloaded")
+            logger.info("Navigated to %s", start_url)
 
         # Initial screenshot
         screenshot_bytes = await controller.screenshot()
+        logger.info("Took initial screenshot (%d bytes)", len(screenshot_bytes))
 
         contents = [
             types.Content(
@@ -88,6 +96,7 @@ async def run_computer_use(
         ]
 
         for turn in range(max_turns):
+            logger.info("Turn %d/%d — calling model...", turn + 1, max_turns)
             _strip_old_screenshots(contents)
 
             response = await client.aio.models.generate_content(
@@ -100,6 +109,14 @@ async def run_computer_use(
             if candidate.content:
                 contents.append(candidate.content)
 
+            # Log any text the model produced (thoughts or final text)
+            for part in (candidate.content.parts if candidate.content else []):
+                if getattr(part, "thought", False) and part.text:
+                    logger.debug("Model thought: %s", part.text[:200])
+                elif part.text:
+                    logger.info("Model text: %s", part.text[:200])
+                    final_text = part.text
+
             # Extract function calls
             function_calls = [
                 part.function_call
@@ -108,13 +125,14 @@ async def run_computer_use(
             ]
 
             if not function_calls:
-                # Model is done — extract any final text
+                logger.info("No function calls on turn %d — model is done", turn + 1)
                 break
 
             # Execute each action and collect responses
             function_response_parts = []
             for fc in function_calls:
                 args = dict(fc.args) if fc.args else {}
+                logger.info("Action: %s(%s)", fc.name, args)
 
                 # Handle safety confirmations
                 extra = {}
@@ -148,7 +166,13 @@ async def run_computer_use(
                 types.Content(role="user", parts=function_response_parts)
             )
 
+        logger.info("Session complete: %d actions over %d turns", len(actions_log), turn + 1)
+
+    except Exception:
+        logger.exception("Computer Use session failed")
+        raise
     finally:
         await controller.stop()
+        logger.info("Browser closed")
 
-    return actions_log
+    return actions_log, final_text

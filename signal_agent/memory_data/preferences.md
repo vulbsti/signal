@@ -28,6 +28,13 @@
 - https://feeds.arstechnica.com/arstechnica/index
 - https://www.theverge.com/rss/index.xml
 
+## Subreddits
+- r/programming
+- r/MachineLearning
+- r/LocalLLaMA
+- r/ExperiencedDevs
+- r/science
+
 ## Content Preferences
 - Prefer in-depth technical articles over news summaries
 - Prefer primary sources over commentary
