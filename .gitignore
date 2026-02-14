@@ -24,3 +24,4 @@ signal_agent/memory_data/feed_state.md
 
 .playwright/
 signal_noise_reducer.egg-info
+signal_agent/browser/.edge_profile/
